@@ -5,6 +5,7 @@
     "jsx": "react",
     "declaration": true,
     "outDir": "./dist",
+    "rootDir": "./src",
 
     /* Strict Type-Checking Options */
     "strict": true,
@@ -26,10 +27,9 @@
     "noPropertyAccessFromIndexSignature": true,
 
     /* Module Resolution Options */
-    "rootDirs": ["src", "tools"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "tools"]
+  "include": ["src"]
 }

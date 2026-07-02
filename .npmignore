@@ -1,6 +1,8 @@
 # ignore all
 **/*
 
-# override above and include dist
+# override above and include what the package ships
 !README.md
 !dist/**/*
+!build/**/*
+!bin/**/*
