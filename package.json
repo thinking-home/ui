@@ -13,7 +13,8 @@
             "types": "./build/index.d.ts",
             "default": "./build/index.mjs"
         },
-        "./vendor": "./dist/vendor.js"
+        "./vendor": "./dist/vendor.js",
+        "./package.json": "./package.json"
     },
     "bin": {
         "th-build": "bin/th-build.mjs"
