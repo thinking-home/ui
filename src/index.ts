@@ -132,9 +132,14 @@ declare global {
   }
 }
 
-window.thI18n = I18n;
-window.thReact = React;
-window.thReactDOMClient = ReactDOMClient;
-window.thReactRouter = ReactRouter;
-window.thReactRouterDOM = ReactRouterDOM;
-window.thHistory = History;
+// Publish the shared libraries as window globals for plugins to reuse. Guarded
+// so this module can be imported in Node (e.g. the externals-manifest generator)
+// without a "window is not defined" crash; in the browser it runs as before.
+if (typeof window !== "undefined") {
+  window.thI18n = I18n;
+  window.thReact = React;
+  window.thReactDOMClient = ReactDOMClient;
+  window.thReactRouter = ReactRouter;
+  window.thReactRouterDOM = ReactRouterDOM;
+  window.thHistory = History;
+}

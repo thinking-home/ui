@@ -22,7 +22,8 @@
     "scripts": {
         "build:lib": "vite build",
         "build:types": "tsc",
-        "build": "rm -rf dist && npm run build:lib && npm run build:types",
+        "build:externals": "node build/gen-externals-manifest.mjs",
+        "build": "rm -rf dist && npm run build:lib && npm run build:types && npm run build:externals",
         "prepublishOnly": "npm run build",
         "go": "git add . && git commit -m \"tmp\" && npm version patch && npm publish"
     },
@@ -51,6 +52,6 @@
     "dependencies": {
         "minimist": "^1.2.8",
         "react-toastify": "^11.0.3",
-        "vite": "^5.4.8"
+        "vite": "^8.1.3"
     }
 }

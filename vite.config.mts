@@ -24,7 +24,9 @@ export default defineConfig({
   },
   build: {
     target: "es2020",
-    minify: true,
+    // Rolldown's built-in minifier (Vite 8 defaults to esbuild, which we don't
+    // install as it's now an optional peer).
+    minify: "oxc",
     // vendor.js is emitted here; `tsc` later adds the .d.ts / CJS files.
     emptyOutDir: false,
     lib: {

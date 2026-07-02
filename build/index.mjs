@@ -1,5 +1,5 @@
 import { rmSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import parse from "minimist";
 import { build } from "vite";
 import { resolveEntries } from "./entries.mjs";
@@ -37,7 +37,7 @@ export async function runBuild(argv = []) {
 
   for (const [name, entry] of Object.entries(entries)) {
     await build(createPluginConfig({ root, name, entry, outDir, mode }));
-    console.log(`[th-build] ✓ ${name} → ${join("dist", name + ".js")}`);
+    console.log(`[th-build] ✓ ${name} → ${join(relative(root, outDir) || ".", name + ".js")}`);
   }
 
   console.log("[th-build] done.");

@@ -38,6 +38,12 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
     configFile: false,
     logLevel: "warn",
     mode,
+    // Vite lib mode doesn't inline this, but a plugin may bundle a third-party
+    // library that branches on `process.env.NODE_ENV`; bake it in so the bundle
+    // doesn't reference `process` (undefined in the browser).
+    define: {
+      "process.env.NODE_ENV": JSON.stringify(mode),
+    },
     esbuild: {
       // Classic JSX transform: entry/component files must `import React`.
       jsx: "transform",
@@ -50,7 +56,8 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
       // We clean the dir once up front and build entries one by one into it.
       emptyOutDir: false,
       target: "es2020",
-      minify: isProduction,
+      // Rolldown's built-in minifier (Vite 8 defaults to esbuild, an optional peer).
+      minify: isProduction ? "oxc" : false,
       sourcemap: isProduction ? false : "inline",
       lib: {
         entry,
@@ -58,8 +65,8 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
         fileName: () => `${name}.js`,
       },
       rollupOptions: {
-        // Force everything for this entry into a single file.
-        output: { inlineDynamicImports: true },
+        // Keep each entry a single self-contained file (no code splitting).
+        output: { codeSplitting: false },
       },
     },
   };
