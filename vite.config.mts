@@ -8,6 +8,15 @@ import { defineConfig } from "vite";
 // built later, don't bundle these libraries — they read them from those globals
 // (see build/window-externals.mjs).
 export default defineConfig({
+  // Vite lib mode does NOT inline `process.env.NODE_ENV` (it leaves that to the
+  // consuming bundler). But this vendor bundle is loaded directly by a browser
+  // via <script>, where `process` is undefined — so React/react-router's
+  // `process.env.NODE_ENV` checks would throw. Bake in the production value.
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+    // react-router flag for framework/SSR build mode — this is a plain SPA.
+    "process.env.IS_RR_BUILD_REQUEST": "false",
+  },
   esbuild: {
     jsx: "transform",
     jsxFactory: "React.createElement",
