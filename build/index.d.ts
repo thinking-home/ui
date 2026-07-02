@@ -1,6 +1,9 @@
 import type { InlineConfig, Plugin } from "vite";
 
-export declare const WINDOW_GLOBALS: Record<string, string>;
+export declare const SHARED: Record<string, string>;
+export declare const SHARED_EXTERNALS: string[];
+
+export declare function forceExternal(ids?: string[]): Plugin;
 
 export declare function createPluginConfig(options: {
   root: string;
@@ -11,8 +14,6 @@ export declare function createPluginConfig(options: {
 }): InlineConfig;
 
 export declare function resolveEntries(root: string): Record<string, string>;
-
-export declare function windowExternals(globals: Record<string, string>): Plugin;
 
 export declare function cssInject(): Plugin;
 

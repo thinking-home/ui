@@ -13,17 +13,17 @@
             "types": "./build/index.d.ts",
             "default": "./build/index.mjs"
         },
-        "./vendor": "./dist/vendor.js",
+        "./shared.json": "./shared.json",
+        "./vendor/*": "./vendor/*",
         "./package.json": "./package.json"
     },
     "bin": {
         "th-build": "bin/th-build.mjs"
     },
     "scripts": {
-        "build:lib": "vite build",
         "build:types": "tsc",
-        "build:externals": "node build/gen-externals-manifest.mjs",
-        "build": "rm -rf dist && npm run build:lib && npm run build:types && npm run build:externals",
+        "build:vendor": "node build/build-vendor.mjs",
+        "build": "rm -rf dist vendor && npm run build:types && npm run build:vendor",
         "prepublishOnly": "npm run build",
         "go": "git add . && git commit -m \"tmp\" && npm version patch && npm publish"
     },

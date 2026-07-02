@@ -5,14 +5,14 @@ import { build } from "vite";
 import { resolveEntries } from "./entries.mjs";
 import { createPluginConfig } from "./config.mjs";
 
-export { createPluginConfig, WINDOW_GLOBALS } from "./config.mjs";
+export { createPluginConfig } from "./config.mjs";
+export { SHARED, SHARED_EXTERNALS, forceExternal } from "./shared.mjs";
 export { resolveEntries } from "./entries.mjs";
-export { windowExternals } from "./window-externals.mjs";
 export { cssInject } from "./css-inject.mjs";
 
 /**
  * Discover a plugin's entry points, then build each one into its own
- * self-contained ESM bundle in `dist/`. This is what the `th-build` bin runs.
+ * self-contained ESM bundle. This is what the `th-build` bin runs.
  *
  * Flags: --mode <production|development>, --root <dir>, --outDir <dir>
  *

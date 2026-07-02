@@ -1,25 +1,14 @@
-import { windowExternals } from "./window-externals.mjs";
 import { cssInject } from "./css-inject.mjs";
-
-/**
- * Libraries the host provides via `window` globals. Plugins reuse these instead
- * of bundling their own copies. Keep this in sync with the assignments in
- * src/index.ts (the vendor bundle) and the UMD name in vite.config.ts.
- */
-export const WINDOW_GLOBALS = {
-  react: "thReact",
-  "react-dom/client": "thReactDOMClient",
-  "react-router": "thReactRouter",
-  "react-router-dom": "thReactRouterDOM",
-  history: "thHistory",
-  "@thinking-home/i18n": "thI18n",
-  "@thinking-home/ui": "ThinkingHomeUi",
-};
+import { SHARED_EXTERNALS, forceExternal } from "./shared.mjs";
 
 /**
  * Build the Vite inline config for a single plugin entry point. Each entry is
  * built on its own into one self-contained ESM file (`<name>.js`) so it can be
  * loaded with `import(url)`.
+ *
+ * The shared libraries (react, react-router, @thinking-home/ui, …) are left as
+ * bare imports for the host's import map to resolve at runtime — they are NOT
+ * bundled into the plugin.
  *
  * @param {object} options
  * @param {string} options.root    absolute path of the plugin project
@@ -38,9 +27,6 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
     configFile: false,
     logLevel: "warn",
     mode,
-    // Vite lib mode doesn't inline this, but a plugin may bundle a third-party
-    // library that branches on `process.env.NODE_ENV`; bake it in so the bundle
-    // doesn't reference `process` (undefined in the browser).
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
@@ -50,13 +36,12 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
       jsxFactory: "React.createElement",
       jsxFragment: "React.Fragment",
     },
-    plugins: [windowExternals(WINDOW_GLOBALS), cssInject()],
+    plugins: [forceExternal(), cssInject()],
     build: {
       outDir,
       // We clean the dir once up front and build entries one by one into it.
       emptyOutDir: false,
       target: "es2020",
-      // Rolldown's built-in minifier (Vite 8 defaults to esbuild, an optional peer).
       minify: isProduction ? "oxc" : false,
       sourcemap: isProduction ? false : "inline",
       lib: {
@@ -65,7 +50,7 @@ export function createPluginConfig({ root, name, entry, outDir, mode = "producti
         fileName: () => `${name}.js`,
       },
       rollupOptions: {
-        // Keep each entry a single self-contained file (no code splitting).
+        external: SHARED_EXTERNALS,
         output: { codeSplitting: false },
       },
     },

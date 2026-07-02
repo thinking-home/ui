@@ -1,15 +1,10 @@
-import React, {
+import {
   ComponentType,
   createContext,
   useCallback,
   useContext,
   useEffect,
 } from "react";
-import ReactDOMClient from "react-dom/client";
-import * as ReactRouter from "react-router";
-import * as ReactRouterDOM from "react-router-dom";
-import * as History from "history";
-import * as I18n from "@thinking-home/i18n";
 import { Decoder } from "io-ts/Decoder";
 import { ToastContent, ToastOptions, Id } from "react-toastify";
 
@@ -119,27 +114,4 @@ export class UiModule {
 
 export function createModule(component: ComponentType) {
   return new UiModule(component);
-}
-
-declare global {
-  interface Window {
-    thI18n: unknown;
-    thReact: unknown;
-    thReactDOMClient: unknown;
-    thReactRouter: unknown;
-    thReactRouterDOM: unknown;
-    thHistory: unknown;
-  }
-}
-
-// Publish the shared libraries as window globals for plugins to reuse. Guarded
-// so this module can be imported in Node (e.g. the externals-manifest generator)
-// without a "window is not defined" crash; in the browser it runs as before.
-if (typeof window !== "undefined") {
-  window.thI18n = I18n;
-  window.thReact = React;
-  window.thReactDOMClient = ReactDOMClient;
-  window.thReactRouter = ReactRouter;
-  window.thReactRouterDOM = ReactRouterDOM;
-  window.thHistory = History;
 }

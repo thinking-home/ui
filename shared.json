@@ -1,0 +1,10 @@
+{
+  "react": "react.js",
+  "react-dom": "react.js",
+  "react-dom/client": "react.js",
+  "react-router": "react-router.js",
+  "react-router-dom": "react-router-dom.js",
+  "history": "history.js",
+  "@thinking-home/i18n": "i18n.js",
+  "@thinking-home/ui": "thinking-home-ui.js"
+}

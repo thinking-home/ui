@@ -6,3 +6,5 @@
 !dist/**/*
 !build/**/*
 !bin/**/*
+!vendor/**/*
+!shared.json
