@@ -5,7 +5,7 @@ import {
   useContext,
   useEffect,
 } from "react";
-import { Decoder } from "io-ts/Decoder";
+import type { GenericSchema } from "valibot";
 import { ToastContent, ToastOptions, Id } from "react-toastify";
 
 export * from "./i18n";
@@ -27,11 +27,11 @@ export type QueryData =
 
 export interface ApiClient {
   get<T>(
-    decoder: Decoder<unknown, T>,
+    schema: GenericSchema<unknown, T>,
     query: { url: string; params?: QueryParams; signal?: AbortSignal }
   ): Promise<T>;
   post<T>(
-    decoder: Decoder<unknown, T>,
+    schema: GenericSchema<unknown, T>,
     query: {
       url: string;
       params?: QueryParams;
@@ -53,7 +53,7 @@ export interface MessageHub {
   send<T>(topic: string, data: T): Promise<void>;
   subscribe<T>(
     topic: string,
-    decoder: Decoder<unknown, T>,
+    schema: GenericSchema<unknown, T>,
     callback: (msg: ReceivedMessage<T>) => void
   ): () => void;
 }
@@ -93,7 +93,7 @@ export const useAppContext = (): AppContext => {
 
 export const useMessageHandler = <T>(
   topic: string,
-  decoder: Decoder<unknown, T>,
+  schema: GenericSchema<unknown, T>,
   callback: (msg: ReceivedMessage<T>) => void,
   deps: unknown[]
 ): void => {
@@ -102,8 +102,8 @@ export const useMessageHandler = <T>(
   const handler = useCallback(callback, deps);
 
   useEffect(
-    () => messageHub.subscribe(topic, decoder, handler),
-    [messageHub, topic, decoder, handler]
+    () => messageHub.subscribe(topic, schema, handler),
+    [messageHub, topic, schema, handler]
   );
 };
 
