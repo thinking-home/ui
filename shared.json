@@ -3,8 +3,8 @@
   "react-dom": "react.js",
   "react-dom/client": "react.js",
   "react-router": "react-router.js",
-  "react-router-dom": "react-router-dom.js",
-  "history": "history.js",
-  "@thinking-home/i18n": "i18n.js",
+  "react-router-dom": "react-router.js",
+  "history": "react-router.js",
+  "@thinking-home/i18n": "thinking-home-ui.js",
   "@thinking-home/ui": "thinking-home-ui.js"
 }
