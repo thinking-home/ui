@@ -6,5 +6,7 @@
   "react-router-dom": "react-router.js",
   "history": "react-router.js",
   "@thinking-home/i18n": "thinking-home-ui.js",
-  "@thinking-home/ui": "thinking-home-ui.js"
+  "@thinking-home/ui": "thinking-home-ui.js",
+  "@mantine/core": "mantine.js",
+  "@mantine/hooks": "mantine.js"
 }

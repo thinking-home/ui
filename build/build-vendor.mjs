@@ -17,7 +17,7 @@
 // library shares its output file (e.g. `@thinking-home/i18n`), the source
 // module's exports are re-exported alongside that library's — the merged file
 // then answers the import map for every specifier in the group.
-import { rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { rmSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { gzipSync, brotliCompressSync, constants } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -27,6 +27,14 @@ import { SHARED, forceExternal } from "./shared.mjs";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 const vendorDir = resolve(root, "vendor");
+
+// CSS общих библиотек: копируем как есть (файлы уже собраны их авторами),
+// хост отдаёт их отдельными файлами на весь интерфейс — см. раздел styles в манифесте.
+// Берём обычный styles.css, а не вариант с CSS-слоями: кит в интерфейсе один,
+// разбираться с приоритетами слоёв не нужно.
+const SHARED_STYLES = {
+  "mantine.css": "@mantine/core/styles.css",
+};
 
 const SELF = "@thinking-home/ui";
 const SELF_ENTRY = resolve(root, "src/index.ts");
@@ -138,12 +146,17 @@ for (const [filename, specsInGroup] of Object.entries(groups)) {
 // gzip обязателен, и именно он используется на практике: браузеры анонсируют
 // brotli только в защищённом контексте (HTTPS или localhost), а веб-интерфейс
 // системы открывают по http по адресу в локальной сети.
+for (const [target, source] of Object.entries(SHARED_STYLES)) {
+  copyFileSync(resolve(root, "node_modules", ...source.split("/")), resolve(vendorDir, target));
+  console.log(`[th-ui] vendor: ${source} → vendor/${target}`);
+}
+
 const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
 
 // какие файлы реально созданы для каждого бандла
 const files = {};
 
-for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js"))) {
+for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js") || name.endsWith(".css"))) {
   const path = resolve(vendorDir, file);
   const source = readFileSync(path);
 
@@ -171,7 +184,7 @@ for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js"))
 // сам, иначе схема имён дублировалась бы в двух репозиториях и могла разъехаться.
 writeFileSync(
   resolve(vendorDir, "shared.json"),
-  JSON.stringify({ imports: SHARED, files }, null, 2),
+  JSON.stringify({ imports: SHARED, styles: Object.keys(SHARED_STYLES), files }, null, 2),
 );
 
 console.log("[th-ui] vendor built.");
