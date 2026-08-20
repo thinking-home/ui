@@ -121,6 +121,9 @@ for (const [filename, specsInGroup] of Object.entries(groups)) {
       emptyOutDir: false,
       target: "es2020",
       minify: "oxc",
+      // Вендорные бандлы заведомо крупные (mantine), а к пользователю они едут
+      // сжатыми — предупреждать имеет смысл только о заметном росте сверх текущего.
+      chunkSizeWarningLimit: 650,
       rollupOptions: {
         input: VIRTUAL,
         external,
