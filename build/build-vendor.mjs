@@ -17,7 +17,7 @@
 // library shares its output file (e.g. `@thinking-home/i18n`), the source
 // module's exports are re-exported alongside that library's — the merged file
 // then answers the import map for every specifier in the group.
-import { rmSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { gzipSync, brotliCompressSync, constants } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -130,7 +130,6 @@ for (const [filename, specsInGroup] of Object.entries(groups)) {
   console.log(`[th-ui] vendor: ${specsInGroup.join(", ")} → vendor/${filename}`);
 }
 
-copyFileSync(resolve(root, "shared.json"), resolve(vendorDir, "shared.json"));
 
 // Рядом с каждым бандлом кладём предсжатые копии. Хост отдаёт готовый файл по
 // Accept-Encoding: сжатие не пересчитывается на каждый запрос и получается
@@ -140,6 +139,9 @@ copyFileSync(resolve(root, "shared.json"), resolve(vendorDir, "shared.json"));
 // brotli только в защищённом контексте (HTTPS или localhost), а веб-интерфейс
 // системы открывают по http по адресу в локальной сети.
 const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
+
+// какие файлы реально созданы для каждого бандла
+const files = {};
 
 for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js"))) {
   const path = resolve(vendorDir, file);
@@ -157,9 +159,19 @@ for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js"))
   writeFileSync(`${path}.br`, brotli);
   writeFileSync(`${path}.gz`, gzip);
 
+  files[file] = { br: `${file}.br`, gzip: `${file}.gz` };
+
   console.log(
     `[th-ui] vendor: ${file} ${kb(source.length)} → gzip ${kb(gzip.length)}, brotli ${kb(brotli.length)}`,
   );
 }
+
+// Манифест для хоста: соответствие импортов бандлам и список сжатых вариантов,
+// которые действительно созданы. Хост берёт имена файлов отсюда и не собирает их
+// сам, иначе схема имён дублировалась бы в двух репозиториях и могла разъехаться.
+writeFileSync(
+  resolve(vendorDir, "shared.json"),
+  JSON.stringify({ imports: SHARED, files }, null, 2),
+);
 
 console.log("[th-ui] vendor built.");
