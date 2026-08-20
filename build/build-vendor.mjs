@@ -17,7 +17,8 @@
 // library shares its output file (e.g. `@thinking-home/i18n`), the source
 // module's exports are re-exported alongside that library's — the merged file
 // then answers the import map for every specifier in the group.
-import { rmSync, mkdirSync, copyFileSync } from "node:fs";
+import { rmSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { gzipSync, brotliCompressSync, constants } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { build } from "vite";
@@ -130,4 +131,35 @@ for (const [filename, specsInGroup] of Object.entries(groups)) {
 }
 
 copyFileSync(resolve(root, "shared.json"), resolve(vendorDir, "shared.json"));
+
+// Рядом с каждым бандлом кладём предсжатые копии. Хост отдаёт готовый файл по
+// Accept-Encoding: сжатие не пересчитывается на каждый запрос и получается
+// максимального качества (сжатие на лету в ASP.NET Core работает на минимальном).
+//
+// gzip обязателен, и именно он используется на практике: браузеры анонсируют
+// brotli только в защищённом контексте (HTTPS или localhost), а веб-интерфейс
+// системы открывают по http по адресу в локальной сети.
+const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
+
+for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js"))) {
+  const path = resolve(vendorDir, file);
+  const source = readFileSync(path);
+
+  const brotli = brotliCompressSync(source, {
+    params: {
+      [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
+      [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
+    },
+  });
+
+  const gzip = gzipSync(source, { level: constants.Z_BEST_COMPRESSION });
+
+  writeFileSync(`${path}.br`, brotli);
+  writeFileSync(`${path}.gz`, gzip);
+
+  console.log(
+    `[th-ui] vendor: ${file} ${kb(source.length)} → gzip ${kb(gzip.length)}, brotli ${kb(brotli.length)}`,
+  );
+}
+
 console.log("[th-ui] vendor built.");
