@@ -17,12 +17,12 @@
 // library shares its output file (e.g. `@thinking-home/i18n`), the source
 // module's exports are re-exported alongside that library's — the merged file
 // then answers the import map for every specifier in the group.
-import { rmSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
-import { gzipSync, brotliCompressSync, constants } from "node:zlib";
+import { rmSync, mkdirSync, copyFileSync, readdirSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { build } from "vite";
 import { SHARED, forceExternal } from "./shared.mjs";
+import { compressAssets } from "./compress.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -154,37 +154,14 @@ for (const [target, source] of Object.entries(SHARED_STYLES)) {
   console.log(`[th-ui] vendor: ${source} → vendor/${target}`);
 }
 
-const kb = (bytes) => `${Math.round(bytes / 1024)} KB`;
-
-// какие файлы реально созданы для каждого бандла
-const files = {};
-
-for (const file of readdirSync(vendorDir).filter((name) => name.endsWith(".js") || name.endsWith(".css"))) {
-  const path = resolve(vendorDir, file);
-  const source = readFileSync(path);
-
-  const brotli = brotliCompressSync(source, {
-    params: {
-      [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY,
-      [constants.BROTLI_PARAM_SIZE_HINT]: source.length,
-    },
-  });
-
-  const gzip = gzipSync(source, { level: constants.Z_BEST_COMPRESSION });
-
-  writeFileSync(`${path}.br`, brotli);
-  writeFileSync(`${path}.gz`, gzip);
-
-  files[file] = { br: `${file}.br`, gzip: `${file}.gz` };
-
-  console.log(
-    `[th-ui] vendor: ${file} ${kb(source.length)} → gzip ${kb(gzip.length)}, brotli ${kb(brotli.length)}`,
-  );
-}
-
 // Манифест для хоста: соответствие импортов бандлам и список сжатых вариантов,
 // которые действительно созданы. Хост берёт имена файлов отсюда и не собирает их
 // сам, иначе схема имён дублировалась бы в двух репозиториях и могла разъехаться.
+const files = compressAssets(
+  vendorDir,
+  readdirSync(vendorDir).filter((name) => name.endsWith(".js") || name.endsWith(".css")),
+);
+
 writeFileSync(
   resolve(vendorDir, "shared.json"),
   JSON.stringify({ imports: SHARED, styles: Object.keys(SHARED_STYLES), files }, null, 2),
